@@ -17,32 +17,35 @@ namespace Tail
 			int newlineCount = 0;
 			char delimiter = Environment.NewLine[0];
 			List<char> buffer = new List<char>();
+			char ch;
 
-			// From end of file:
-			// If newline
-			//   break
-			// Else push bytes into character array
+			// For each line in lines from end of file:
+			// If caught Exception from seeking
+			//     break (reached beginning of file)
+			// Else
+			//     push byte into character array and continue
 			using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read))
 			{
-				for (offset = 1; newlineCount < lines; offset++) {
-					try {
+				for (offset = 1; newlineCount < lines; offset++)
+				{
+					try
+					{
 						fs.Seek(-offset, SeekOrigin.End);
-					} catch (Exception) {
-						break;
 					}
+					catch (Exception) { break; }
 
-					int read = fs.ReadByte();
-					char ch = Convert.ToChar(read);
+					buffer.Add(ch = Convert.ToChar(fs.ReadByte()));
 
-					if (ch == delimiter) {
+					if (ch == delimiter)
+					{
 						newlineCount++;
 					}
-
-					buffer.Add(ch);
 				}
 			}
 
-			buffer.Reverse();
+			int trim = buffer.Count - Environment.NewLine.Length;
+			buffer = buffer.GetRange(0, trim);
+			buffer.Reverse();	
 			return new string(buffer.ToArray());
 		}
 	}
