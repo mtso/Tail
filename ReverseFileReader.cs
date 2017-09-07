@@ -18,12 +18,13 @@ namespace Tail
 			char delimiter = Environment.NewLine[0];
 			List<char> buffer = new List<char>();
 			char ch;
+			bool isReadAll = false;
 
 			// For each line in lines from end of file:
 			// If caught Exception from seeking
 			//     break (reached beginning of file)
 			// Else
-			//     push byte into character array and continue
+			//     push byte into character array and continue.
 			using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read))
 			{
 				for (offset = 1; newlineCount < lines; offset++)
@@ -32,7 +33,11 @@ namespace Tail
 					{
 						fs.Seek(-offset, SeekOrigin.End);
 					}
-					catch (Exception) { break; }
+					catch (Exception)
+					{
+						isReadAll = true;
+						break;
+					}
 
 					buffer.Add(ch = Convert.ToChar(fs.ReadByte()));
 
@@ -43,7 +48,8 @@ namespace Tail
 				}
 			}
 
-			int trim = buffer.Count - Environment.NewLine.Length;
+			// Remove the last newline if the whole file was not read.
+			int trim = isReadAll ? buffer.Count : buffer.Count - Environment.NewLine.Length;
 			buffer = buffer.GetRange(0, trim);
 			buffer.Reverse();	
 			return new string(buffer.ToArray());
